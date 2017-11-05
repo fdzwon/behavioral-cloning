@@ -1,13 +1,24 @@
 
-# coding: utf-8
-
-# In[1]:
-
+# import libraries for image and data set trasformation.
 import numpy as np
 import matplotlib.image as mpimg
-import os
 import pandas as pd
 from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+
+
+# import libraries for CNN.
+from keras.models import load_model, Model, Sequential
+from keras.layers.core import Dense, Flatten, Dropout, Activation, Lambda
+from keras.layers.advanced_activations import ELU
+from keras.layers.convolutional import Convolution2D
+from keras.preprocessing.image import ImageDataGenerator
+from keras.layers.pooling import MaxPooling2D
+
+import tensorflow as tf
+tf.python.control_flow_ops = tf
+
+
 
 def generator(data, batch_size=50):
     num_samples = len(data)
@@ -44,34 +55,6 @@ def generator(data, batch_size=50):
             x = x[:,80:,:,:] 
             
             yield (x, y)
-   
-        
-
-
-# In[2]:
-
-#! /usr/bin/env python
- 
-from keras.models import load_model, Model, Sequential
-from keras.layers.core import Dense, Flatten, Dropout, Activation, Lambda
-from keras.layers.advanced_activations import ELU
-from keras.layers.convolutional import Convolution2D
-from keras.preprocessing.image import ImageDataGenerator
-from keras.layers.pooling import MaxPooling2D
-
-import tensorflow as tf
-tf.python.control_flow_ops = tf
-
-import numpy as np
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-
-# Visualizations will be shown in the notebook.
-get_ipython().magic('matplotlib inline')
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 
 
 def main(_):
@@ -94,19 +77,24 @@ def main(_):
     model = Sequential()
     # normalize on images - input_shape: height, width, color_channels.
     model.add(Lambda(lambda x: x/127.5 - 1., input_shape=(80, 320, 3)))
+    # first layer
     model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
     model.add(ELU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    # second layer
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(ELU())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    # third layer
     model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
     model.add(Dropout(.2))
     model.add(ELU())
+    # fourth layer
     model.add(Dense(512))
     model.add(Dropout(.5))
     model.add(ELU())
+    # output
     model.add(Dense(1))
     
     # compile model using the adam optimizer.
@@ -123,14 +111,3 @@ def main(_):
 if __name__ == '__main__':
     tf.app.run()
  
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
